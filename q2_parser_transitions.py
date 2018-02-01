@@ -22,12 +22,12 @@ class PartialParse(object):
 
         ### YOUR CODE HERE
         if len(sentence)==0:
-            self.sentence = list()
+            self.stack = ["ROOT"]
             self.buffer = list()
             self.dependencies = list(tuple())
         else:
-            self.stack = [sentence[-1]]
-            self.buffer = [sentence[0]]
+            self.stack = ["ROOT"]
+            self.buffer = sentence
             self.dependencies = list(tuple())
             # self.dependencies.append((self.stack,self.buffer))
         ### END YOUR CODE
@@ -48,6 +48,7 @@ class PartialParse(object):
         print "stack passed: {:} ".format(self.stack)
         print "dependencies passed: {:} ".format(self.dependencies)
         if transition=='S':
+
             temp = self.buffer.pop(0)
             self.stack.append(temp)
 
@@ -56,10 +57,18 @@ class PartialParse(object):
             last = self.stack[-1]
             self.dependencies.append((last,last2))
         else:
-            last2 = self.stack[-2]
-            last = self.stack.pop(-1)
-            self.dependencies.append((last2,last))
+            if len(self.buffer)==0 and len(self.stack)==2:
+                print "IF"
+                last = self.stack.pop(-1)
+                self.dependencies.append(("ROOT",last))
+                print tuple(sorted(self.dependencies))
+                print tuple(self.sentence)
 
+            else:
+                print "ELSE"
+                last2 = self.stack[-2]
+                last = self.stack.pop(-1)
+                self.dependencies.append((last2,last))
 
         ### END YOUR CODE
 
@@ -189,6 +198,6 @@ def test_minibatch_parse():
     print "minibatch_parse test passed!"
 
 if __name__ == '__main__':
-    test_parse_step()
+    # test_parse_step()
     test_parse()
     # test_minibatch_parse()
