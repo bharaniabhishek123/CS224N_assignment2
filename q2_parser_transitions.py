@@ -21,6 +21,15 @@ class PartialParse(object):
         self.sentence = sentence
 
         ### YOUR CODE HERE
+        if len(sentence)==0:
+            self.sentence = list()
+            self.buffer = list()
+            self.dependencies = list(tuple())
+        else:
+            self.stack = [sentence[-1]]
+            self.buffer = [sentence[0]]
+            self.dependencies = list(tuple())
+            # self.dependencies.append((self.stack,self.buffer))
         ### END YOUR CODE
 
     def parse_step(self, transition):
@@ -32,6 +41,26 @@ class PartialParse(object):
                         transition.
         """
         ### YOUR CODE HERE
+        print "inside parse_step"
+        print "transition passed : {:} ".format(transition)
+        print "sentence passed: {:} ".format(self.sentence)
+        print "buffer passed: {:} ".format(self.buffer)
+        print "stack passed: {:} ".format(self.stack)
+        print "dependencies passed: {:} ".format(self.dependencies)
+        if transition=='S':
+            temp = self.buffer.pop(0)
+            self.stack.append(temp)
+
+        elif transition=='LA':
+            last2 = self.stack.pop(-2)
+            last = self.stack[-1]
+            self.dependencies.append((last,last2))
+        else:
+            last2 = self.stack[-2]
+            last = self.stack.pop(-1)
+            self.dependencies.append((last2,last))
+
+
         ### END YOUR CODE
 
     def parse(self, transitions):
@@ -66,6 +95,7 @@ def minibatch_parse(sentences, model, batch_size):
     """
 
     ### YOUR CODE HERE
+    dependencies =0
     ### END YOUR CODE
 
     return dependencies
@@ -74,7 +104,9 @@ def minibatch_parse(sentences, model, batch_size):
 def test_step(name, transition, stack, buf, deps,
               ex_stack, ex_buf, ex_deps):
     """Tests that a single parse step returns the expected output"""
+    print "inside test_step"
     pp = PartialParse([])
+    print "call after PartialParse([])"
     pp.stack, pp.buffer, pp.dependencies = stack, buf, deps
 
     pp.parse_step(transition)
@@ -92,6 +124,8 @@ def test_parse_step():
     """Simple tests for the PartialParse.parse_step function
     Warning: these are not exhaustive
     """
+    print "inside test_parse_step"
+
     test_step("SHIFT", "S", ["ROOT", "the"], ["cat", "sat"], [],
               ("ROOT", "the", "cat"), ("sat",), ())
     test_step("LEFT-ARC", "LA", ["ROOT", "the", "cat"], ["sat"], [],
@@ -105,7 +139,10 @@ def test_parse():
     Warning: these are not exhaustive
     """
     sentence = ["parse", "this", "sentence"]
+    print "Before call to PartialParse(sentence).parse"
     dependencies = PartialParse(sentence).parse(["S", "S", "S", "LA", "RA", "RA"])
+    print "After call to PartialParse(sentence).parse"
+
     dependencies = tuple(sorted(dependencies))
     expected = (('ROOT', 'parse'), ('parse', 'sentence'), ('sentence', 'this'))
     assert dependencies == expected,  \
@@ -154,4 +191,4 @@ def test_minibatch_parse():
 if __name__ == '__main__':
     test_parse_step()
     test_parse()
-    test_minibatch_parse()
+    # test_minibatch_parse()

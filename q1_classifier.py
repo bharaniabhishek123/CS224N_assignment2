@@ -102,12 +102,12 @@ class SoftmaxModel(Model):
         x= self.input_placeholder
         W = tf.get_variable('weights',shape=[100,5],dtype=tf.float32,initializer=tf.zeros_initializer())
         b= tf.get_variable('bias',shape=[1,5],dtype=tf.float32,initializer=tf.zeros_initializer())
-        # print "shape of x"
-        # print x.shape
-        # print "shape of W"
-        # print W.shape
-        # print "shape of b"
-        # print b.shape
+        print "shape of x"
+        print x.shape
+        print "shape of W"
+        print W.shape
+        print "shape of b"
+        print b.shape
         pred = softmax(tf.matmul(x,W)+b)
 
         # print "shape of pred in add_prediction_op"
@@ -172,6 +172,7 @@ class SoftmaxModel(Model):
             average_loss: scalar. Average minibatch loss of model on epoch.
         """
         n_minibatches, total_loss = 0, 0
+
         for input_batch, labels_batch in get_minibatches([inputs, labels], self.config.batch_size):
             n_minibatches += 1
             total_loss += self.train_on_batch(sess, input_batch, labels_batch)

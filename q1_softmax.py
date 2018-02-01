@@ -62,6 +62,8 @@ def cross_entropy_loss(y, yhat):
     ### YOUR CODE HERE
     out1 = -tf.to_float(y)* tf.log(yhat)
     # out1 = tf.tensordot(-tf.to_float(y),tf.log(yhat),axes=1)
+    # out1 = tf.Print(out1, [out1])
+    # out1 = tf.Print(out1, [out1],summarize=30) # to print 30 values
     out = tf.reduce_sum(out1)
 
     ### END YOUR CODE
