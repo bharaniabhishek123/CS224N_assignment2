@@ -24,6 +24,7 @@ class Config(object):
     batch_size = 1024
     n_epochs = 10
     lr = 0.0005
+    None1 = None
 
 
 class ParserModel(Model):
@@ -54,6 +55,12 @@ class ParserModel(Model):
         (Don't change the variable names)
         """
         ### YOUR CODE HERE
+        cn = Config()
+
+        self.input_placeholder = tf.placeholder(tf.int32,shape=(None,cn.n_features))
+        self.labels_placeholder = tf.placeholder(tf.float32,shape=(None,cn.n_classes))
+        # self.droupout_placeholder = tf.placeholder(tf.float32,cn.dropout)
+        self.dropout_placeholder = tf.constant(cn.dropout,tf.float32)
         ### END YOUR CODE
 
     def create_feed_dict(self, inputs_batch, labels_batch=None, dropout=0):
@@ -79,6 +86,12 @@ class ParserModel(Model):
             feed_dict: The feed dictionary mapping from placeholders to values.
         """
         ### YOUR CODE HERE
+        feed_dict = dict()
+
+        feed_dict[self.input_placeholder] = inputs_batch
+        feed_dict[self.dropout_placeholder] = dropout
+        if labels_batch is not None:
+            feed_dict[self.labels_placeholder] = labels_batch
         ### END YOUR CODE
         return feed_dict
 
@@ -100,6 +113,27 @@ class ParserModel(Model):
             embeddings: tf.Tensor of shape (None, n_features*embed_size)
         """
         ### YOUR CODE HERE
+        cn =Config()
+        # embeddings = tf.zeros(shape=(None,cn.n_features*cn.embed_size))
+        # embeddings = tf.get_variable("embedding_matrix", shape=(None,cn.n_features*cn.embed_size),initializer=self.pretrained_embeddings)
+
+        embed = tf.get_variable("embeding_matrix",initializer=self.pretrained_embeddings)
+
+        temp = tf.nn.embedding_lookup(embed,self.input_placeholder)
+
+        # print "output shape from embedding_lookup",format(temp.shape)
+        # print "shape of embed variable",format(embed.shape)
+        # print "shape of embeddings",format(self.pretrained_embeddings.shape)
+        # print "shape of input place holder",format(self.input_placeholder.shape)
+
+        #Learnings from tf.reshape
+        # we cannot pass tf.reshape(temp,(None,cn.n_features*cn.embed_size))
+        # TypeError: Failed to convert object of type <type 'tuple'> to Tensor. Contents: (None, 1800). Consider casting elements to a supported type.
+        # solution : Use -1 to act as a place holder
+        # Let's say original matrix of size(3,4,5) and we reshape into matrix of size(-1,20) -1 will be inferred as 3
+        embeddings= tf.reshape(temp,(-1,cn.n_features*cn.embed_size))
+
+        # print  embeddings.shape
         ### END YOUR CODE
         return embeddings
 
@@ -125,8 +159,38 @@ class ParserModel(Model):
         """
 
         x = self.add_embedding()
+
         ### YOUR CODE HERE
+        cn = Config()
+        W = tf.get_variable("Weights_Layer1", shape=(cn.n_features*cn.embed_size,cn.hidden_size)
+                            ,initializer=xavier_weight_init())#cn.n_features*cn.embed_size,cn.hidden_size))
+        b1 = tf.get_variable("bias_Layer1",shape=(1,cn.hidden_size),initializer=tf.zeros_initializer)
+
+        # print "Dimension of W",format(W.shape)
+        # print "Dimension of b1",format(b1.shape)
+        # print "Dimension of x",format(x.shape)
+        #
+        # print "xW multiplication shape",format(tf.matmul(x,W).shape)
+
+
+        h = tf.nn.relu(tf.matmul(x,W)+b1)
+
+        h_drop = tf.nn.dropout(h,1.0-self.dropout_placeholder)
+        U = tf.get_variable("Weights_Layer2", shape=(cn.hidden_size,cn.n_classes)
+                            ,initializer=xavier_weight_init())#cn.hidden_size,cn.n_classes))
+        b2 = tf.get_variable("bias_Layer2",shape=(1,cn.n_classes),initializer=tf.zeros_initializer)
+
+        # print "Dimension of h", format(h.shape)
+        # print "Dimension of h_drop", format(h_drop.shape)
+        # print "Dimension of U", format(U.shape)
+        # print "Dimension of b2", format(b2.shape)
+        #
+        # print "h_drop U multiplication shape", format(tf.matmul(h_drop, U).shape)
+
+        pred = tf.matmul(h_drop,U) + b2
+
         ### END YOUR CODE
+
         return pred
 
     def add_loss_op(self, pred):
@@ -143,7 +207,11 @@ class ParserModel(Model):
             loss: A 0-d tensor (scalar)
         """
         ### YOUR CODE HERE
+        out1 = tf.nn.softmax_cross_entropy_with_logits(labels=self.labels_placeholder, logits=pred)
+        loss = tf.reduce_sum(out1)
+        print "loss done"
         ### END YOUR CODE
+
         return loss
 
     def add_training_op(self, loss):
@@ -167,6 +235,7 @@ class ParserModel(Model):
             train_op: The Op for training.
         """
         ### YOUR CODE HERE
+        train_op = tf.train.AdamOptimizer(learning_rate=self.config.lr).minimize(loss)
         ### END YOUR CODE
         return train_op
 
@@ -206,6 +275,7 @@ class ParserModel(Model):
         self.build()
 
 
+
 def main(debug=True):
     print 80 * "="
     print "INITIALIZING"
@@ -214,6 +284,7 @@ def main(debug=True):
     parser, embeddings, train_examples, dev_set, test_set = load_and_preprocess_data(debug)
     if not os.path.exists('./data/weights/'):
         os.makedirs('./data/weights/')
+
 
     with tf.Graph().as_default() as graph:
         print "Building model...",
@@ -224,6 +295,7 @@ def main(debug=True):
         saver = None if debug else tf.train.Saver()
         print "took {:.2f} seconds\n".format(time.time() - start)
     graph.finalize()
+
 
     with tf.Session(graph=graph) as session:
         parser.session = session

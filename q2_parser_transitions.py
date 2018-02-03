@@ -27,7 +27,7 @@ class PartialParse(object):
             self.dependencies = list(tuple())
         else:
             self.stack = ["ROOT"]
-            self.buffer = sentence
+            self.buffer = sentence[:]
             self.dependencies = list(tuple())
             # self.dependencies.append((self.stack,self.buffer))
         ### END YOUR CODE
@@ -41,12 +41,12 @@ class PartialParse(object):
                         transition.
         """
         ### YOUR CODE HERE
-        print "inside parse_step"
-        print "transition passed : {:} ".format(transition)
-        print "sentence passed: {:} ".format(self.sentence)
-        print "buffer passed: {:} ".format(self.buffer)
-        print "stack passed: {:} ".format(self.stack)
-        print "dependencies passed: {:} ".format(self.dependencies)
+        # print "inside parse_step"
+        # print "transition passed : {:} ".format(transition)
+        # print "sentence passed: {:} ".format(self.sentence)
+        # print "buffer passed: {:} ".format(self.buffer)
+        # print "stack passed: {:} ".format(self.stack)
+        # print "dependencies passed: {:} ".format(self.dependencies)
         if transition=='S':
 
             temp = self.buffer.pop(0)
@@ -58,14 +58,14 @@ class PartialParse(object):
             self.dependencies.append((last,last2))
         else:
             if len(self.buffer)==0 and len(self.stack)==2:
-                print "IF"
+                # print "IF"
                 last = self.stack.pop(-1)
                 self.dependencies.append(("ROOT",last))
-                print tuple(sorted(self.dependencies))
-                print tuple(self.sentence)
+                # print tuple(sorted(self.dependencies))
+                # print tuple(self.sentence)
 
             else:
-                print "ELSE"
+                # print "ELSE"
                 last2 = self.stack[-2]
                 last = self.stack.pop(-1)
                 self.dependencies.append((last2,last))
@@ -82,6 +82,7 @@ class PartialParse(object):
                           as a list of tuples where each tuple is of the form (head, dependent)
         """
         for transition in transitions:
+
             self.parse_step(transition)
         return self.dependencies
 
@@ -104,7 +105,48 @@ def minibatch_parse(sentences, model, batch_size):
     """
 
     ### YOUR CODE HERE
-    dependencies =0
+    # print "Inside minbatch_parse"
+    partial_parses = []
+
+    #initialize partial_parses as a list of PartialParses for all setences
+
+    for sentence in sentences:
+            parse = PartialParse(sentence)
+            partial_parses.append(parse)
+    unfinished_parses = partial_parses[:]
+
+    # temp= model.predict(partial_parses)
+    # print  temp
+
+    # transitions1 = model.predict(partial_parses) # first set of predictions are S S S S
+    # print "minibatch_parse the predictions are {:}",format(transitions1)
+
+    dep = [p.dependencies for p in partial_parses]
+    # print "Dependencies before while loop",format(dep)
+    # cnt = 0
+    while len(unfinished_parses) >0:
+            mb = unfinished_parses[0:batch_size]
+            # print len(mb)
+            trans= model.predict(mb)
+
+            for parse,transitions in zip(mb,trans):
+                # cnt+=1
+                # print "Counter {:}",format(cnt)
+                # print "Transitions{:}",format(transitions)
+                # print "Sentence {:}".format(parse.sentence)
+                # print "Buffer before parse_Step{:}".format(parse.buffer)
+                # print "Stack before parse_Step{:}".format(parse.stack)
+                parse.parse_step(transitions)
+                # print "Buffer after parse_Step{:}".format(parse.buffer)
+                # print "Stack  after parse_Step{:}".format(parse.stack)
+                # print "parse.dependencies: {:}",format(parse.dependencies)
+                if len(parse.buffer) ==0 and len(parse.stack)==1:
+                    unfinished_parses.remove(parse)
+
+    dep1 = [p.dependencies for p in partial_parses]
+
+    # print dep1
+    dependencies =dep1[:]
     ### END YOUR CODE
 
     return dependencies
@@ -113,9 +155,9 @@ def minibatch_parse(sentences, model, batch_size):
 def test_step(name, transition, stack, buf, deps,
               ex_stack, ex_buf, ex_deps):
     """Tests that a single parse step returns the expected output"""
-    print "inside test_step"
+    # print "inside test_step"
     pp = PartialParse([])
-    print "call after PartialParse([])"
+    # print "call after PartialParse([])"
     pp.stack, pp.buffer, pp.dependencies = stack, buf, deps
 
     pp.parse_step(transition)
@@ -148,9 +190,9 @@ def test_parse():
     Warning: these are not exhaustive
     """
     sentence = ["parse", "this", "sentence"]
-    print "Before call to PartialParse(sentence).parse"
+    # print "Before call to PartialParse(sentence).parse"
     dependencies = PartialParse(sentence).parse(["S", "S", "S", "LA", "RA", "RA"])
-    print "After call to PartialParse(sentence).parse"
+    # print "After call to PartialParse(sentence).parse"
 
     dependencies = tuple(sorted(dependencies))
     expected = (('ROOT', 'parse'), ('parse', 'sentence'), ('sentence', 'this'))
@@ -170,6 +212,43 @@ class DummyModel(object):
         return [("RA" if pp.stack[1] is "right" else "LA") if len(pp.buffer) == 0 else "S"
                 for pp in partial_parses]
 
+
+class DummyModel1(object):
+    def predict1(self,pp):
+        result = []
+        for pp_1 in pp:
+            print "predict1 sentence {:}",format(pp_1.sentence)
+            print "predict1 buffer {:}",format(pp_1.buffer)
+            print "predict1 stack {:}",format(pp_1.stack)
+            if len(pp_1.buffer)<>0:
+                result.append("S")
+            elif pp_1.stack[1] is "right":
+                result.append("RA")
+            else:
+                result.append("LA")
+        return result
+
+
+def test_minibatch_parse1():
+
+    instance_dummy = DummyModel1()
+    sentences = [["right", "arcs", "only"],
+                 ["right", "arcs", "only", "again"],
+                 ["left", "arcs", "only"],
+                 ["left", "arcs", "only", "again"]]
+    partial_parses1=[]
+    for sentence in sentences:
+            parse = PartialParse(sentence)
+            print "PartialParse sentence {:}",format(parse.sentence)
+            print "PartialParse stack {:}",format(parse.stack)
+            print "PartialParse buffer {:}", format(parse.buffer)
+
+            partial_parses1.append(parse)
+
+
+
+    transitions1 = instance_dummy.predict1(partial_parses1)
+    print transitions1
 
 def test_dependencies(name, deps, ex_deps):
     """Tests the provided dependencies match the expected dependencies"""
@@ -199,5 +278,6 @@ def test_minibatch_parse():
 
 if __name__ == '__main__':
     # test_parse_step()
-    test_parse()
-    # test_minibatch_parse()
+    # test_parse()
+    test_minibatch_parse()
+    # test_minibatch_parse1()
