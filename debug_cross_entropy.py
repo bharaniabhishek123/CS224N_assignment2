@@ -34,23 +34,33 @@ W = tf.random_normal([100,5],mean=1,stddev=1.0)
 #How softmax_cross_entropy_with_logits works ?
 
 
-# pred: A tensor of shape (batch_size, n_classes) containing the output of the neural
-#                   network before the softmax layer.
+# # pred: A tensor of shape (batch_size, n_classes) containing the output of the neural
+# #                   network before the softmax layer.
+#
+#
+# y = tf.constant([[0, 1], [1, 0], [1, 0]])
+# yhat = tf.constant([[.5, .5], [.5, .5], [.5, .5]])
+#
+# expected = -3 * tf.log(.5)
+#
+# out1 = tf.nn.softmax_cross_entropy_with_logits(labels=y,logits=yhat)
+# out2 = tf.reduce_sum(out1)
+#
+# with tf.Session() as sess:
+#     print sess.run(out1)
+#     print sess.run(out2)
+#     print sess.run(expected)
+#
+#
+# # End of softmax_cross_entropy_with_logits
 
 
-y = tf.constant([[0, 1], [1, 0], [1, 0]])
-yhat = tf.constant([[.5, .5], [.5, .5], [.5, .5]])
+import pickle
 
-expected = -3 * tf.log(.5)
 
-out1 = tf.nn.softmax_cross_entropy_with_logits(labels=y,logits=yhat)
-out2 = tf.reduce_sum(out1)
-
-with tf.Session() as sess:
-    print sess.run(out1)
-    print sess.run(out2)
-    print sess.run(expected)
-
+with open('q2_test.predicted.pkl', 'rb') as f:
+    data = pickle.load(f)
+    print  len(data)
 #
 # tp = (2,3)
 #

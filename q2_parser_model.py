@@ -208,8 +208,8 @@ class ParserModel(Model):
         """
         ### YOUR CODE HERE
         out1 = tf.nn.softmax_cross_entropy_with_logits(labels=self.labels_placeholder, logits=pred)
-        loss = tf.reduce_sum(out1)
-        print "loss done"
+        loss = tf.reduce_mean(out1)
+
         ### END YOUR CODE
 
         return loss
@@ -276,7 +276,7 @@ class ParserModel(Model):
 
 
 
-def main(debug=True):
+def main(debug=False):
     print 80 * "="
     print "INITIALIZING"
     print 80 * "="
