@@ -27,8 +27,8 @@ def xavier_weight_init():
         ### YOUR CODE HERE
 
         epsilon = np.sqrt(6)/np.sqrt(np.sum(shape))
-        out = tf.random_uniform(shape=shape,dtype=tf.float32,minval=-epsilon,maxval=epsilon)
-
+        # out = tf.random_uniform(shape=shape,dtype=tf.float32,minval=-epsilon,maxval=epsilon)  # Mistake and Wrong Code leads to re-initialization
+        out = tf.Variable(tf.random_uniform(shape=shape,dtype=tf.float32,minval=-epsilon,maxval=epsilon))
         ### END YOUR CODE
         return out
     # Returns defined initializer function.

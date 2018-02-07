@@ -175,7 +175,7 @@ def test_parse_step():
     """Simple tests for the PartialParse.parse_step function
     Warning: these are not exhaustive
     """
-    print "inside test_parse_step"
+    # print "inside test_parse_step"
 
     test_step("SHIFT", "S", ["ROOT", "the"], ["cat", "sat"], [],
               ("ROOT", "the", "cat"), ("sat",), ())

@@ -18,13 +18,15 @@ class Config(object):
     """
     n_features = 36
     n_classes = 3
-    dropout = 0.5  # (p_drop in the handout)
+    dropout = 0.50  # (p_drop in the handout)
     embed_size = 50
     hidden_size = 200
     batch_size = 1024
     n_epochs = 10
     lr = 0.0005
     None1 = None
+    # beta = 0.01 # to be used in regularization
+    # extension_on =False
 
 
 class ParserModel(Model):
@@ -60,7 +62,8 @@ class ParserModel(Model):
         self.input_placeholder = tf.placeholder(tf.int32,shape=(None,cn.n_features))
         self.labels_placeholder = tf.placeholder(tf.float32,shape=(None,cn.n_classes))
         # self.droupout_placeholder = tf.placeholder(tf.float32,cn.dropout)
-        self.dropout_placeholder = tf.constant(cn.dropout,tf.float32)
+        # self.dropout_placeholder = tf.constant(cn.dropout,tf.float32)
+        self.dropout_placeholder = tf.placeholder(tf.float32) # change done to match B
         ### END YOUR CODE
 
     def create_feed_dict(self, inputs_batch, labels_batch=None, dropout=0):
@@ -131,7 +134,11 @@ class ParserModel(Model):
         # TypeError: Failed to convert object of type <type 'tuple'> to Tensor. Contents: (None, 1800). Consider casting elements to a supported type.
         # solution : Use -1 to act as a place holder
         # Let's say original matrix of size(3,4,5) and we reshape into matrix of size(-1,20) -1 will be inferred as 3
+
+
         embeddings= tf.reshape(temp,(-1,cn.n_features*cn.embed_size))
+        # embeddings= tf.reshape(temp,[-1,cn.n_features*cn.embed_size]) # changed to match B
+
 
         # print  embeddings.shape
         ### END YOUR CODE
@@ -208,8 +215,13 @@ class ParserModel(Model):
         """
         ### YOUR CODE HERE
         out1 = tf.nn.softmax_cross_entropy_with_logits(labels=self.labels_placeholder, logits=pred)
+
         loss = tf.reduce_mean(out1)
 
+        # Add L2 regularization
+        # Loss function using L2 Regularization
+        # regularizer = tf.nn.l2_loss(weights)
+        # loss = tf.reduce_mean(loss + beta * regularizer)
         ### END YOUR CODE
 
         return loss
