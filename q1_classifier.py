@@ -102,12 +102,12 @@ class SoftmaxModel(Model):
         x= self.input_placeholder
         W = tf.get_variable('weights',shape=[100,5],dtype=tf.float32,initializer=tf.zeros_initializer())
         b= tf.get_variable('bias',shape=[1,5],dtype=tf.float32,initializer=tf.zeros_initializer())
-        print "shape of x"
-        print x.shape
-        print "shape of W"
-        print W.shape
-        print "shape of b"
-        print b.shape
+        # print "shape of x"
+        # print x.shape
+        # print "shape of W"
+        # print W.shape
+        # print "shape of b"
+        # print b.shape
         pred = softmax(tf.matmul(x,W)+b)
 
         # print "shape of pred in add_prediction_op"
